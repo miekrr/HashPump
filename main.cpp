@@ -2,6 +2,7 @@
 #include <openssl/sha.h>
 #include "SHA1.h"
 #include "MD5ex.h"
+#include "SHA256.h"
 
 using namespace std;
 
@@ -26,13 +27,13 @@ void DigestToRaw(string hash, unsigned char * raw)
 	}
 }
 
-vector<unsigned char> GenerateRandomData()
+vector<unsigned char> * GenerateRandomData()
 {
-	vector<unsigned char> ret;
+	vector<unsigned char> * ret = new vector<unsigned char>();
 	int length = rand() % 128;
 	for(int x = 0; x < length; x++)
 	{
-		ret.push_back((rand() % (126 - 32)) + 32);
+		ret->push_back((rand() % (126 - 32)) + 32);
 	}
 	return ret;
 }
@@ -40,29 +41,40 @@ vector<unsigned char> GenerateRandomData()
 void TestExtender(Extender * sex)
 {
 	//First generate a signature, with randomly generated data
-	vector<unsigned char> vkey = GenerateRandomData();
-	vector<unsigned char> vmessage = GenerateRandomData();
-	vector<unsigned char> additionalData = GenerateRandomData();
+	vector<unsigned char> * vkey = GenerateRandomData();
+	vector<unsigned char> * vmessage = GenerateRandomData();
+	vector<unsigned char> * additionalData = GenerateRandomData();
 	unsigned char * firstSig;
 	unsigned char * secondSig;
-	sex->GenerateSignature(vkey, vmessage, &firstSig);
-	if(sex->ValidateSignature(vkey, vmessage, firstSig))
+	sex->GenerateSignature(*vkey, *vmessage, &firstSig);
+	if(sex->ValidateSignature(*vkey, *vmessage, firstSig))
 	{
-		vector<unsigned char> newData = sex->GenerateStretchedData(vmessage, vkey.size(), firstSig, additionalData, &secondSig);
-		if(sex->ValidateSignature(vkey, newData, secondSig))
+		vector<unsigned char> * newData = sex->GenerateStretchedData(*vmessage, vkey->size(), firstSig, *additionalData, &secondSig);
+		if(sex->ValidateSignature(*vkey, *newData, secondSig))
 		{
 			cout << "Test passed." << endl;
+			delete vkey;
+			delete vmessage;
+			delete additionalData;
+			delete newData;
 			return;
 		}
 		else
 		{
 			cout << "Generated data failed to be verified as correctly signed." << endl;
+			delete vkey;
+			delete vmessage;
+			delete additionalData;
+			delete newData;
 			return;
 		}
 	}
 	else
 	{
 		cout << "Initial signature check failed." << endl;
+		delete vkey;
+		delete vmessage;
+		delete additionalData;
 		return;
 	}
 }
@@ -104,15 +116,15 @@ int main(int argc, char ** argv)
 		unsigned char firstSig[20];
 		DigestToRaw(sig, firstSig);
 		unsigned char * secondSig;
-		vector<unsigned char> secondMessage = sex->GenerateStretchedData(vmessage, keylength, firstSig, vtoadd, &secondSig);
+		vector<unsigned char> * secondMessage = sex->GenerateStretchedData(vmessage, keylength, firstSig, vtoadd, &secondSig);
 		for(int x = 0; x < 20; x++)
 		{
 			printf("%02x", secondSig[x]);
 		}
 		cout << endl;
-		for(unsigned int x = 0; x < secondMessage.size(); x++)
+		for(unsigned int x = 0; x < secondMessage->size(); x++)
 		{
-			unsigned char c = secondMessage.at(x);
+			unsigned char c = secondMessage->at(x);
 			if(c >= 32 && c <= 126)
 			{
 				cout << c;
@@ -122,6 +134,7 @@ int main(int argc, char ** argv)
 				printf("\\x%02x", c);
 			}
 		}
+		delete secondMessage;
 		cout << endl;
 		return 0;
 	}
@@ -130,6 +143,9 @@ int main(int argc, char ** argv)
 		//Just a simple way to force tests
 		cout << "Testing SHA1" << endl;
 		TestExtender(new SHA1ex());
+
+		cout << "Testing SHA256" << endl;
+		TestExtender(new SHA256ex());
 
 		cout << "Testing MD5" << endl;
 		TestExtender(new MD5ex());

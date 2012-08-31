@@ -26,7 +26,7 @@ public:
 	virtual ~Extender();
 	virtual int GenerateSignature(vector<unsigned char> key, vector<unsigned char> message, unsigned char ** signature) = 0;
 	virtual bool ValidateSignature(vector<unsigned char> key, vector<unsigned char> message, unsigned char * signature) = 0;
-	virtual vector<unsigned char> GenerateStretchedData(vector<unsigned char> originalMessage, int keylength, unsigned char * hash, vector<unsigned char> added, unsigned char ** newSig) = 0;
+	virtual vector<unsigned char> * GenerateStretchedData(vector<unsigned char> originalMessage, int keylength, unsigned char * hash, vector<unsigned char> added, unsigned char ** newSig) = 0;
 };
 
 #endif /* EXTENDER_H_ */
