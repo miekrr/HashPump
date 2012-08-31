@@ -107,6 +107,10 @@ int main(int argc, char ** argv)
 			//SHA1
 			sex = new SHA1ex();
 		}
+		else if(sig.length() == 64)
+		{
+			sex = new SHA256ex();
+		}
 		else
 		{
 			cout << "Hash size does not match a known algorithm." << endl;
