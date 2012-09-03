@@ -3,6 +3,7 @@
 #include "SHA1.h"
 #include "MD5ex.h"
 #include "SHA256.h"
+#include "SHA512ex.h"
 
 using namespace std;
 
@@ -114,6 +115,10 @@ int main(int argc, char ** argv)
 		{
 			sex = new MD5ex();
 		}
+		else if(sig.length() == 128)
+		{
+			sex = new SHA512ex();
+		}
 		else
 		{
 			cout << "Hash size does not match a known algorithm." << endl;
@@ -153,6 +158,9 @@ int main(int argc, char ** argv)
 
 		cout << "Testing SHA256" << endl;
 		TestExtender(new SHA256ex());
+
+		cout << "Testing SHA512" << endl;
+		TestExtender(new SHA512ex());
 
 		cout << "Testing MD5" << endl;
 		TestExtender(new MD5ex());

@@ -89,7 +89,7 @@ vector<unsigned char> * SHA256ex::GenerateStretchedData(vector<unsigned char> or
 		toadd[x] = added[x];
 	}
 	SHA256_Update(&stretch, toadd, added.size());
-	*newSig = new unsigned char[20];
+	*newSig = new unsigned char[32];
 	SHA256_Final(*newSig, &stretch);
 	delete [] toadd;
 	for(unsigned int x = 0; x < added.size(); x++)
