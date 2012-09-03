@@ -63,21 +63,23 @@ vector<unsigned char> * MD5ex::GenerateStretchedData(vector<unsigned char> origi
 	{
 		ret->push_back(0x00);
 	}
-	ret->push_back((tailLength >> 24) & 0xFF);
-	ret->push_back((tailLength >> 16) & 0xFF);
-	ret->push_back((tailLength >> 8) & 0xFF);
+
 	ret->push_back((tailLength) & 0xFF);
+	ret->push_back((tailLength >> 8) & 0xFF);
+	ret->push_back((tailLength >> 16) & 0xFF);
+	ret->push_back((tailLength >> 24) & 0xFF);
 	ret->push_back(0x00);
 	ret->push_back(0x00);
 	ret->push_back(0x00);
 	ret->push_back(0x00);
+
 	MD5_CTX stretch;
 	MD5_Init(&stretch);
 	stretch.Nl = (ret->size() + keylength) * 8;
-	stretch.A = hash[3] | (hash[2] << 8) | (hash[1] << 16) | (hash[0] << 24);
-	stretch.B = hash[7] | (hash[6] << 8) | (hash[5] << 16) | (hash[4] << 24);
-	stretch.C = hash[11] | (hash[10] << 8) | (hash[9] << 16) | (hash[8] << 24);
-	stretch.D = hash[15] | (hash[14] << 8) | (hash[13] << 16) | (hash[12] << 24);
+	stretch.A = hash[0] | (hash[1] << 8) | (hash[2] << 16) | (hash[3] << 24);
+	stretch.B = hash[4] | (hash[5] << 8) | (hash[6] << 16) | (hash[7] << 24);
+	stretch.C = hash[8] | (hash[9] << 8) | (hash[10] << 16) | (hash[11] << 24);
+	stretch.D = hash[12] | (hash[13] << 8) | (hash[14] << 16) | (hash[15] << 24);
 	char * toadd = new char[added.size()];
 	for(unsigned int x = 0; x < added.size(); x++)
 	{

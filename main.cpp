@@ -104,12 +104,15 @@ int main(int argc, char ** argv)
 
 		if(sig.length() == 40)
 		{
-			//SHA1
 			sex = new SHA1ex();
 		}
 		else if(sig.length() == 64)
 		{
 			sex = new SHA256ex();
+		}
+		else if(sig.length() == 32)
+		{
+			sex = new MD5ex();
 		}
 		else
 		{
