@@ -105,6 +105,15 @@ Extender * GetExtenderForHash(string sig)
 void PrintHelp()
 {
 	cout << "HashPump [-h help] [-t test] [-s signature] [-d data] [-a additional] [-k keylength]" << endl;
+	cout << "     HashPump generates strings to exploit signatures vulnerable to the Hash Length Extension Attack." << endl;
+	cout << "     -h --help          Display this message." << endl;
+	cout << "     -t --test          Run tests to verify each algorithm is operating properly." << endl;
+	cout << "     -s --signature     The signature from known message." << endl;
+	cout << "     -d --data          The data from the known message." << endl;
+	cout << "     -a --additional    The information you would like to add to the known message." << endl;
+	cout << "     -k --keylength     The length in bytes of the key being used to sign the original message with." << endl;
+	cout << "     Version 1.0 with MD5, SHA1, SHA256 and SHA512 support." << endl;
+	cout << "     <Developed by bwall(@bwallHatesTwits)>" << endl;
 }
 
 int main(int argc, char ** argv)
