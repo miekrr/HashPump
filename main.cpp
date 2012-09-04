@@ -1,4 +1,5 @@
-
+#include <unistd.h>
+#include <getopt.h>
 #include <openssl/sha.h>
 #include "SHA1.h"
 #include "MD5ex.h"
@@ -80,77 +81,117 @@ void TestExtender(Extender * sex)
 	}
 }
 
+Extender * GetExtenderForHash(string sig)
+{
+	if(sig.length() == 40)
+	{
+		return new SHA1ex();
+	}
+	else if(sig.length() == 64)
+	{
+		return new SHA256ex();
+	}
+	else if(sig.length() == 32)
+	{
+		return new MD5ex();
+	}
+	else if(sig.length() == 128)
+	{
+		 return new SHA512ex();
+	}
+	return NULL;
+}
+
+void PrintHelp()
+{
+	cout << "HashPump [-h help] [-t test] [-s signature] [-d data] [-a additional] [-k keylength]" << endl;
+}
+
 int main(int argc, char ** argv)
 {
-	if(argc < 2)
+	string sig;
+	string data;
+	int keylength;
+	string datatoadd;
+	Extender * sex;
+	bool run_tests = false;
+
+	while(1)
 	{
-		cout << "Input Signature: ";
-		string sig;
-		cin >> sig;
-		cout << sig.length() << endl;
-		cout << "Input Data: ";
-		string data;
-		cin >> data;
-		int keylength;
-		cout << "Input Key Length: ";
-		cin >> keylength;
-		string datatoadd;
-		cout << "Input Data to Add: ";
-		cin >> datatoadd;
+		int option_index = 0;
+		static struct option long_options[] = {
+			{"test", no_argument, 0, 0},
+			{"signature", required_argument, 0, 0},
+			{"data", required_argument, 0, 0},
+			{"additional", required_argument, 0, 0},
+			{"keylength", required_argument, 0, 0},
+			{"help", no_argument, 0, 0},
+			{0, 0, 0, 0}
+		};
 
-		vector<unsigned char> vmessage = StringToVector((unsigned char*)data.c_str());
-		vector<unsigned char> vtoadd = StringToVector((unsigned char*)datatoadd.c_str());
+		int c = getopt_long(argc, argv, "ts:d:a:k:h", long_options, &option_index);
+		if (c == -1)
+			break;
 
-		Extender * sex;
-
-		if(sig.length() == 40)
+		switch(c)
 		{
-			sex = new SHA1ex();
-		}
-		else if(sig.length() == 64)
-		{
-			sex = new SHA256ex();
-		}
-		else if(sig.length() == 32)
-		{
-			sex = new MD5ex();
-		}
-		else if(sig.length() == 128)
-		{
-			sex = new SHA512ex();
-		}
-		else
-		{
-			cout << "Hash size does not match a known algorithm." << endl;
-			return 1;
-		}
-
-		unsigned char firstSig[20];
-		DigestToRaw(sig, firstSig);
-		unsigned char * secondSig;
-		vector<unsigned char> * secondMessage = sex->GenerateStretchedData(vmessage, keylength, firstSig, vtoadd, &secondSig);
-		for(int x = 0; x < 20; x++)
-		{
-			printf("%02x", secondSig[x]);
-		}
-		cout << endl;
-		for(unsigned int x = 0; x < secondMessage->size(); x++)
-		{
-			unsigned char c = secondMessage->at(x);
-			if(c >= 32 && c <= 126)
+		case 0:
+			switch(option_index)
 			{
-				cout << c;
+			case 0:
+				run_tests = true;
+				break;
+			case 1:
+				sig.assign(optarg);
+				sex = GetExtenderForHash(sig);
+				if(sex == NULL)
+				{
+					cout << "Unsupported signature size." << endl;
+					return 0;
+				}
+				break;
+			case 2:
+				data.assign(optarg);
+				break;
+			case 3:
+				datatoadd.assign(optarg);
+				break;
+			case 4:
+				keylength = atoi(optarg);
+				break;
+			case 5:
+				PrintHelp();
+				return 0;
 			}
-			else
-			{
-				printf("\\x%02x", c);
-			}
+			break;
+			case 't':
+				run_tests = true;
+				break;
+			case 's':
+				sig.assign(optarg);
+				sex = GetExtenderForHash(sig);
+				if(sex == NULL)
+				{
+					cout << "Unsupported hash size." << endl;
+					return 0;
+				}
+				break;
+			case 'd':
+				data.assign(optarg);
+				break;
+			case 'a':
+				datatoadd.assign(optarg);
+				break;
+			case 'k':
+				keylength = atoi(optarg);
+				break;
+			case 'h':
+				PrintHelp();
+				return 0;
 		}
-		delete secondMessage;
-		cout << endl;
-		return 0;
 	}
-	else
+
+	if(run_tests)
 	{
 		//Just a simple way to force tests
 		cout << "Testing SHA1" << endl;
@@ -164,5 +205,66 @@ int main(int argc, char ** argv)
 
 		cout << "Testing MD5" << endl;
 		TestExtender(new MD5ex());
+
+		cout << "Testing concluded" << endl;
+		return 0;
 	}
+
+	if(sig.size() == 0)
+	{
+		cout << "Input Signature: ";
+		cin >> sig;
+		sex = GetExtenderForHash(sig);
+		if(sex == NULL)
+		{
+			cout << "Unsupported hash size." << endl;
+			return 0;
+		}
+	}
+
+	if(data.size() == 0)
+	{
+		cout << "Input Data: ";
+		cin >> data;
+	}
+
+	if(keylength == 0)
+	{
+		cout << "Input Key Length: ";
+		cin >> keylength;
+	}
+
+	if(datatoadd.size() == 0)
+	{
+		cout << "Input Data to Add: ";
+		cin >> datatoadd;
+	}
+
+	vector<unsigned char> vmessage = StringToVector((unsigned char*)data.c_str());
+	vector<unsigned char> vtoadd = StringToVector((unsigned char*)datatoadd.c_str());
+
+	unsigned char firstSig[20];
+	DigestToRaw(sig, firstSig);
+	unsigned char * secondSig;
+	vector<unsigned char> * secondMessage = sex->GenerateStretchedData(vmessage, keylength, firstSig, vtoadd, &secondSig);
+	for(int x = 0; x < 20; x++)
+	{
+		printf("%02x", secondSig[x]);
+	}
+	cout << endl;
+	for(unsigned int x = 0; x < secondMessage->size(); x++)
+	{
+		unsigned char c = secondMessage->at(x);
+		if(c >= 32 && c <= 126)
+		{
+			cout << c;
+		}
+		else
+		{
+			printf("\\x%02x", c);
+		}
+	}
+	delete secondMessage;
+	cout << endl;
+	return 0;
 }

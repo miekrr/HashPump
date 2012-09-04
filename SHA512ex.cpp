@@ -52,14 +52,6 @@ bool SHA512ex::ValidateSignature(vector<unsigned char> key, vector<unsigned char
 	{
 		return true;
 	}
-	else
-	{
-		cout << "Hash: ";
-		for(int x = 0; x < 64; x++) printf("%02x", hash[x]);
-		cout << endl << "Sign: ";
-		for(int x = 0; x < 64; x++) printf("%02x", signature[x]);
-		cout << endl;
-	}
 	return false;
 }
 
@@ -71,7 +63,7 @@ vector<unsigned char> * SHA512ex::GenerateStretchedData(vector<unsigned char> or
 	int tailLength = ret->size() + keylength;
 	tailLength *= 8;
 	ret->push_back(0x80);
-	while((ret->size() + keylength + 4) % 64 != 0)
+	while((ret->size() + keylength + 4) % 128 != 0)
 	{
 		ret->push_back(0x00);
 	}
@@ -84,7 +76,7 @@ vector<unsigned char> * SHA512ex::GenerateStretchedData(vector<unsigned char> or
 	stretch.Nl = (ret->size() + keylength) * 8;
 	for(int x = 0; x < 8; x++)
 	{
-		unsigned char * ptr = (unsigned char *)stretch.h[x];
+		unsigned char * ptr = (unsigned char *)&(stretch.h[x]);
 		*(ptr) = hash[(x * 8) + 7];
 		*(ptr + 1) = hash[(x * 8) + 6];
 		*(ptr + 2) = hash[(x * 8) + 5];
