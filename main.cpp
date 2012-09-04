@@ -120,9 +120,9 @@ int main(int argc, char ** argv)
 {
 	string sig;
 	string data;
-	int keylength;
+	int keylength = 0;
 	string datatoadd;
-	Extender * sex;
+	Extender * sex = NULL;
 	bool run_tests = false;
 
 	while(1)
