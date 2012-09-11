@@ -5,6 +5,7 @@
 #include "MD5ex.h"
 #include "SHA256.h"
 #include "SHA512ex.h"
+#include "MD4ex.h"
 
 using namespace std;
 
@@ -54,7 +55,7 @@ void TestExtender(Extender * sex)
 		vector<unsigned char> * newData = sex->GenerateStretchedData(*vmessage, vkey->size(), firstSig, *additionalData, &secondSig);
 		if(sex->ValidateSignature(*vkey, *newData, secondSig))
 		{
-			cout << "Test passed." << endl;
+			cout << "\tTest passed." << endl;
 			delete vkey;
 			delete vmessage;
 			delete additionalData;
@@ -63,7 +64,7 @@ void TestExtender(Extender * sex)
 		}
 		else
 		{
-			cout << "Generated data failed to be verified as correctly signed." << endl;
+			cout << "\tGenerated data failed to be verified as correctly signed." << endl;
 			delete vkey;
 			delete vmessage;
 			delete additionalData;
@@ -73,7 +74,7 @@ void TestExtender(Extender * sex)
 	}
 	else
 	{
-		cout << "Initial signature check failed." << endl;
+		cout << "\tInitial signature check failed." << endl;
 		delete vkey;
 		delete vmessage;
 		delete additionalData;
@@ -214,6 +215,9 @@ int main(int argc, char ** argv)
 
 		cout << "Testing MD5" << endl;
 		TestExtender(new MD5ex());
+
+		cout << "Testing MD4" << endl;
+		TestExtender(new MD4ex());
 
 		cout << "Testing concluded" << endl;
 		return 0;
